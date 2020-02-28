@@ -6128,10 +6128,26 @@ var $author$project$Main$update = F2(
 				return $author$project$Main$withCmd(model);
 		}
 	});
-var $author$project$Main$Begin = {$: 'Begin'};
-var $author$project$Main$Restart = {$: 'Restart'};
-var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$Main$viewContainer = function (children) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'height', '100vh'),
+				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+				A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
+				A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
+				A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+			]),
+		children);
+};
+var $author$project$Main$Begin = {$: 'Begin'};
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$br = _VirtualDom_node('br');
+var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$footer = _VirtualDom_node('footer');
 var $author$project$Main$hangmanAscii = function (state) {
 	if (state.$ === 'Transitionable') {
@@ -6140,21 +6156,21 @@ var $author$project$Main$hangmanAscii = function (state) {
 			case 'Nothing':
 				return '\n\n\n\n\n\n\n          ';
 			case 'Pole':
-				return '\n            +---+\n                |\n                |\n                |\n                |\n                |\n          ';
+				return '\n +---+\n     |\n     |\n     |\n     |\n     |\n          ';
 			case 'Head':
-				return '\n            +---+\n            |   |\n            O   |\n                |\n                |\n                |\n          ';
+				return '\n +---+\n |   |\n O   |\n     |\n     |\n     |\n          ';
 			case 'Torso':
-				return '\n            +---+\n            |   |\n            O   |\n            |   |\n                |\n                |\n          ';
+				return '\n +---+\n |   |\n O   |\n |   |\n     |\n     |\n          ';
 			case 'LeftArm':
-				return '\n            +---+\n            |   |\n            O   |\n           /|   |\n                |\n                |\n          ';
+				return '\n +---+\n |   |\n O   |\n/|   |\n     |\n     |\n          ';
 			case 'RightArm':
-				return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n                |\n                |\n          ';
+				return '\n +---+\n |   |\n O   |\n/|\\  |\n     |\n     |\n          ';
 			default:
-				return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n           /    |\n                |\n          ';
+				return '\n +---+\n |   |\n O   |\n/|\\  |\n/    |\n     |\n          ';
 		}
 	} else {
 		var s = state.a;
-		return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n           / \\  |\n                |\n          ';
+		return '\n +---+\n |   |\n O   |\n/|\\  |\n/ \\  |\n     |\n          ';
 	}
 };
 var $elm$core$String$cons = _String_cons;
@@ -6193,6 +6209,20 @@ var $author$project$Main$hiddenWordForm = F2(
 			' ',
 			A2($elm$core$String$map, hideIfNotGuessed, word));
 	});
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6213,18 +6243,79 @@ var $elm$html$Html$Events$onClick = function (msg) {
 var $elm$html$Html$pre = _VirtualDom_node('pre');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$view = function (model) {
-	switch (model.$) {
-		case 'Start':
-			return A2(
+var $author$project$Main$Restart = {$: 'Restart'};
+var $author$project$Main$viewResult = function (message) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(message),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil),
+				A2(
 				$elm$html$Html$button,
 				_List_fromArray(
 					[
-						$elm$html$Html$Events$onClick($author$project$Main$Begin)
+						$elm$html$Html$Events$onClick($author$project$Main$Restart),
+						A2($elm$html$Html$Attributes$style, 'margin-top', '1em')
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Start')
+						$elm$html$Html$text('Again?')
+					]))
+			]));
+};
+var $author$project$Main$viewEnd = function (result) {
+	if (result.$ === 'Won') {
+		return $author$project$Main$viewResult('You won!');
+	} else {
+		return $author$project$Main$viewResult('You lost!');
+	}
+};
+var $author$project$Main$viewGame = function (model) {
+	switch (model.$) {
+		case 'Start':
+			return A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Wanna play some hangman?'),
+						A2($elm$html$Html$br, _List_Nil, _List_Nil),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$Begin),
+								A2($elm$html$Html$Attributes$style, 'margin-top', '1em')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Yes!')
+							])),
+						A2(
+						$elm$html$Html$footer,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
+								A2($elm$html$Html$Attributes$style, 'padding-top', '1em')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Wiktor Czajkowski 2019'),
+								A2($elm$html$Html$br, _List_Nil, _List_Nil),
+								$elm$html$Html$text('Ascii art by '),
+								A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$href('https://ascii.co.uk/art/hangman')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('ascii.co.uk')
+									]))
+							]))
 					]));
 		case 'Playing':
 			var word = model.a;
@@ -6251,55 +6342,19 @@ var $author$project$Main$view = function (model) {
 							[
 								$elm$html$Html$text(
 								A2($author$project$Main$hiddenWordForm, word, correct))
-							])),
-						A2(
-						$elm$html$Html$footer,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Ascii art by https://ascii.co.uk/art/hangman')
 							]))
 					]));
 		default:
 			var result = model.a;
-			if (result.$ === 'Won') {
-				return A2(
-					$elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text('You won!'),
-							A2(
-							$elm$html$Html$button,
-							_List_fromArray(
-								[
-									$elm$html$Html$Events$onClick($author$project$Main$Restart)
-								]),
-							_List_fromArray(
-								[
-									$elm$html$Html$text('Again?')
-								]))
-						]));
-			} else {
-				return A2(
-					$elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text('You lost!'),
-							A2(
-							$elm$html$Html$button,
-							_List_fromArray(
-								[
-									$elm$html$Html$Events$onClick($author$project$Main$Restart)
-								]),
-							_List_fromArray(
-								[
-									$elm$html$Html$text('Again?')
-								]))
-						]));
-			}
+			return $author$project$Main$viewEnd(result);
 	}
+};
+var $author$project$Main$view = function (model) {
+	return $author$project$Main$viewContainer(
+		_List_fromArray(
+			[
+				$author$project$Main$viewGame(model)
+			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
