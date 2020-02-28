@@ -5685,19 +5685,15 @@ var $author$project$Main$End = function (a) {
 	return {$: 'End', a: a};
 };
 var $author$project$Main$Lost = {$: 'Lost'};
-var $author$project$Main$Playing = F3(
-	function (a, b, c) {
-		return {$: 'Playing', a: a, b: b, c: c};
+var $author$project$Main$Playing = F4(
+	function (a, b, c, d) {
+		return {$: 'Playing', a: a, b: b, c: c, d: d};
 	});
 var $author$project$Main$Won = {$: 'Won'};
+var $elm$core$String$any = _String_any;
 var $author$project$Main$WordSelected = function (a) {
 	return {$: 'WordSelected', a: a};
 };
-var $elm$core$String$any = _String_any;
-var $elm$core$Set$Set_elm_builtin = function (a) {
-	return {$: 'Set_elm_builtin', a: a};
-};
-var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
 var $elm$random$Random$Generate = function (a) {
 	return {$: 'Generate', a: a};
 };
@@ -5805,23 +5801,6 @@ var $elm$random$Random$generate = F2(
 			$elm$random$Random$Generate(
 				A2($elm$random$Random$map, tagger, generator)));
 	});
-var $elm$core$Set$insert = F2(
-	function (key, _v0) {
-		var dict = _v0.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
-	});
-var $elm$core$Set$fromList = function (list) {
-	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
-};
-var $elm$core$String$foldr = _String_foldr;
-var $elm$core$String$toList = function (string) {
-	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
-};
-var $author$project$Main$letters = function (s) {
-	return $elm$core$Set$fromList(
-		$elm$core$String$toList(s));
-};
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
 };
@@ -5910,6 +5889,72 @@ var $author$project$Main$randomWord = A2(
 	'chicken',
 	_List_fromArray(
 		['test']));
+var $author$project$Main$generateWordCmd = A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord);
+var $author$project$Main$Nothing = {$: 'Nothing'};
+var $author$project$Main$Transitionable = function (a) {
+	return {$: 'Transitionable', a: a};
+};
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $author$project$Main$withCmd = function (model) {
+	return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+};
+var $author$project$Main$initialPlayingModel = function (word) {
+	return $author$project$Main$withCmd(
+		A4(
+			$author$project$Main$Playing,
+			word,
+			$elm$core$Set$empty,
+			$elm$core$Set$empty,
+			$author$project$Main$Transitionable($author$project$Main$Nothing)));
+};
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Set$fromList = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
+};
+var $elm$core$String$foldr = _String_foldr;
+var $elm$core$String$toList = function (string) {
+	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
+};
+var $author$project$Main$letters = function (s) {
+	return $elm$core$Set$fromList(
+		$elm$core$String$toList(s));
+};
+var $author$project$Main$Final = function (a) {
+	return {$: 'Final', a: a};
+};
+var $author$project$Main$Head = {$: 'Head'};
+var $author$project$Main$LeftArm = {$: 'LeftArm'};
+var $author$project$Main$LeftLeg = {$: 'LeftLeg'};
+var $author$project$Main$Pole = {$: 'Pole'};
+var $author$project$Main$RightArm = {$: 'RightArm'};
+var $author$project$Main$RightLeg = {$: 'RightLeg'};
+var $author$project$Main$Torso = {$: 'Torso'};
+var $author$project$Main$nextHangmanState = function (s) {
+	switch (s.$) {
+		case 'Nothing':
+			return $author$project$Main$Transitionable($author$project$Main$Pole);
+		case 'Pole':
+			return $author$project$Main$Transitionable($author$project$Main$Head);
+		case 'Head':
+			return $author$project$Main$Transitionable($author$project$Main$Torso);
+		case 'Torso':
+			return $author$project$Main$Transitionable($author$project$Main$LeftArm);
+		case 'LeftArm':
+			return $author$project$Main$Transitionable($author$project$Main$RightArm);
+		case 'RightArm':
+			return $author$project$Main$Transitionable($author$project$Main$LeftLeg);
+		default:
+			return $author$project$Main$Final($author$project$Main$RightLeg);
+	}
+};
 var $elm$core$Dict$sizeHelp = F2(
 	function (n, dict) {
 		sizeHelp:
@@ -5934,10 +5979,6 @@ var $elm$core$Set$size = function (_v0) {
 	var dict = _v0.a;
 	return $elm$core$Dict$size(dict);
 };
-var $author$project$Main$tries = 10;
-var $author$project$Main$withCmd = function (model) {
-	return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-};
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (model.$) {
@@ -5947,20 +5988,15 @@ var $author$project$Main$update = F2(
 					switch (msg.$) {
 						case 'KeyPressed':
 							if ((msg.a.$ === 'Control') && (msg.a.a === 'Enter')) {
-								return _Utils_Tuple2(
-									model,
-									A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord));
+								return _Utils_Tuple2(model, $author$project$Main$generateWordCmd);
 							} else {
 								break _v1$3;
 							}
 						case 'Begin':
-							return _Utils_Tuple2(
-								model,
-								A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord));
+							return _Utils_Tuple2(model, $author$project$Main$generateWordCmd);
 						case 'WordSelected':
 							var word = msg.a;
-							return $author$project$Main$withCmd(
-								A3($author$project$Main$Playing, word, $elm$core$Set$empty, $elm$core$Set$empty));
+							return $author$project$Main$initialPlayingModel(word);
 						default:
 							break _v1$3;
 					}
@@ -5970,39 +6006,42 @@ var $author$project$Main$update = F2(
 				var word = model.a;
 				var incorrect = model.b;
 				var correct = model.c;
+				var hangmanState = model.d;
 				if ((msg.$ === 'KeyPressed') && (msg.a.$ === 'Character')) {
 					var c = msg.a.a;
-					var triesLeft = $author$project$Main$tries - $elm$core$Set$size(incorrect);
 					var lettersLeft = $elm$core$Set$size(
 						$author$project$Main$letters(word)) - $elm$core$Set$size(correct);
 					var isInWord = A2(
 						$elm$core$String$any,
 						$elm$core$Basics$eq(c),
 						word);
-					var _v3 = _Utils_Tuple3(isInWord, triesLeft, lettersLeft);
+					var _v3 = _Utils_Tuple3(isInWord, hangmanState, lettersLeft);
 					if (_v3.a) {
 						if (_v3.c === 1) {
 							return $author$project$Main$withCmd(
 								$author$project$Main$End($author$project$Main$Won));
 						} else {
 							return $author$project$Main$withCmd(
-								A3(
+								A4(
 									$author$project$Main$Playing,
 									word,
 									incorrect,
-									A2($elm$core$Set$insert, c, correct)));
+									A2($elm$core$Set$insert, c, correct),
+									hangmanState));
 						}
 					} else {
-						if (_v3.b === 1) {
+						if (_v3.b.$ === 'Final') {
 							return $author$project$Main$withCmd(
 								$author$project$Main$End($author$project$Main$Lost));
 						} else {
+							var s = _v3.b.a;
 							return $author$project$Main$withCmd(
-								A3(
+								A4(
 									$author$project$Main$Playing,
 									word,
 									A2($elm$core$Set$insert, c, incorrect),
-									correct));
+									correct,
+									$author$project$Main$nextHangmanState(s)));
 						}
 					}
 				} else {
@@ -6015,20 +6054,15 @@ var $author$project$Main$update = F2(
 					switch (msg.$) {
 						case 'KeyPressed':
 							if ((msg.a.$ === 'Control') && (msg.a.a === 'Enter')) {
-								return _Utils_Tuple2(
-									model,
-									A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord));
+								return _Utils_Tuple2(model, $author$project$Main$generateWordCmd);
 							} else {
 								break _v4$3;
 							}
 						case 'Restart':
-							return _Utils_Tuple2(
-								model,
-								A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord));
+							return _Utils_Tuple2(model, $author$project$Main$generateWordCmd);
 						case 'WordSelected':
 							var word = msg.a;
-							return $author$project$Main$withCmd(
-								A3($author$project$Main$Playing, word, $elm$core$Set$empty, $elm$core$Set$empty));
+							return $author$project$Main$initialPlayingModel(word);
 						default:
 							break _v4$3;
 					}
@@ -6040,6 +6074,31 @@ var $author$project$Main$Begin = {$: 'Begin'};
 var $author$project$Main$Restart = {$: 'Restart'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$footer = _VirtualDom_node('footer');
+var $author$project$Main$hangmanAscii = function (state) {
+	if (state.$ === 'Transitionable') {
+		var s = state.a;
+		switch (s.$) {
+			case 'Nothing':
+				return '\n\n\n\n\n\n\n          ';
+			case 'Pole':
+				return '\n            +---+\n                |\n                |\n                |\n                |\n                |\n          ';
+			case 'Head':
+				return '\n            +---+\n            |   |\n            O   |\n                |\n                |\n                |\n          ';
+			case 'Torso':
+				return '\n            +---+\n            |   |\n            O   |\n            |   |\n                |\n                |\n          ';
+			case 'LeftArm':
+				return '\n            +---+\n            |   |\n            O   |\n           /|   |\n                |\n                |\n          ';
+			case 'RightArm':
+				return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n                |\n                |\n          ';
+			default:
+				return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n           /    |\n                |\n          ';
+		}
+	} else {
+		var s = state.a;
+		return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n           / \\  |\n                |\n          ';
+	}
+};
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6057,6 +6116,7 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
+var $elm$html$Html$pre = _VirtualDom_node('pre');
 var $elm$core$String$fromList = _String_fromList;
 var $author$project$Main$setToString = function (s) {
 	return $elm$core$String$fromList(
@@ -6081,11 +6141,20 @@ var $author$project$Main$view = function (model) {
 			var word = model.a;
 			var incorrect = model.b;
 			var correct = model.c;
+			var hangmanState = model.d;
 			return A2(
 				$elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
 					[
+						A2(
+						$elm$html$Html$pre,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$author$project$Main$hangmanAscii(hangmanState))
+							])),
 						A2(
 						$elm$html$Html$div,
 						_List_Nil,
@@ -6115,18 +6184,16 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								'Tries left: ' + $elm$core$String$fromInt(
-									$author$project$Main$tries - $elm$core$Set$size(incorrect)))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
 								'Letters left: ' + $elm$core$String$fromInt(
 									$elm$core$Set$size(
 										$author$project$Main$letters(word)) - $elm$core$Set$size(correct)))
+							])),
+						A2(
+						$elm$html$Html$footer,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Ascii art by https://ascii.co.uk/art/hangman')
 							]))
 					]));
 		default:
