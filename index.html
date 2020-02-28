@@ -5888,9 +5888,9 @@ var $elm$random$Random$uniform = F2(
 	});
 var $author$project$Main$randomWord = A2(
 	$elm$random$Random$uniform,
-	'computer science',
+	'komu w drogę temu cukier do szafy',
 	_List_fromArray(
-		['philosophy', 'linguistics', 'economics', 'mathematics']));
+		['baba z wozu nie ma co jeść', 'kto pod kim dołki kopie ten nosił wilka', 'gość w dom razy kilka ', 'w matematyce nie ma dróg królewskich']));
 var $author$project$Main$generateWordCmd = A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord);
 var $author$project$Main$Nothing = {$: 'Nothing'};
 var $author$project$Main$Transitionable = function (a) {
@@ -6279,16 +6279,16 @@ var $author$project$Main$viewResult = function (message) {
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Another one?')
+						$elm$html$Html$text('Kolejne hasło? ( ͡° ͜ʖ ͡°)')
 					]))
 			]));
 };
 var $author$project$Main$viewEnd = function (result) {
 	if (result.$ === 'Won') {
 		var word = result.a;
-		return $author$project$Main$viewResult('You gussed it, the word is \"' + (word + '\"!'));
+		return $author$project$Main$viewResult('Zgadłeś/-aś! Hasło to \"' + (word + '\"!'));
 	} else {
-		return $author$project$Main$viewResult('You lost!');
+		return $author$project$Main$viewResult('Przegrałeś/-aś!');
 	}
 };
 var $author$project$Main$viewGame = function (model) {
@@ -6299,7 +6299,7 @@ var $author$project$Main$viewGame = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Wanna play some hangman?'),
+						$elm$html$Html$text('Co ty na partyjkę w wisielca?'),
 						A2($elm$html$Html$br, _List_Nil, _List_Nil),
 						A2(
 						$elm$html$Html$button,
@@ -6323,7 +6323,7 @@ var $author$project$Main$viewGame = function (model) {
 							[
 								$elm$html$Html$text('Wiktor Czajkowski 2019'),
 								A2($elm$html$Html$br, _List_Nil, _List_Nil),
-								$elm$html$Html$text('Ascii art by '),
+								$elm$html$Html$text('Ascii z '),
 								A2(
 								$elm$html$Html$a,
 								_List_fromArray(
