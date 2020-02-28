@@ -88,7 +88,7 @@ type alias IncorrectLetters =
 
 
 type Result
-    = Won
+    = Won Word
     | Lost
 
 
@@ -166,7 +166,7 @@ update msg model =
                     in
                     case ( isCorrect, hangmanState, lettersLeft ) of
                         ( True, _, 1 ) ->
-                            End Won |> withCmd
+                            End (Won word) |> withCmd
 
                         ( True, _, _ ) ->
                             Playing word incorrect (Set.insert c correct) hangmanState |> withCmd
@@ -379,14 +379,14 @@ viewResult message =
     div []
         [ text message
         , br [] []
-        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Again?" ]
+        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Another one?" ]
         ]
 
 
 viewEnd result =
     case result of
-        Won ->
-            viewResult "You won!"
+        Won word ->
+            viewResult ("You gussed it, the word is \"" ++ word ++ "\"!")
 
         Lost ->
             viewResult "You lost!"
