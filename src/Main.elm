@@ -272,8 +272,6 @@ view model =
       div [] [
         pre [] [ text (hangmanAscii hangmanState) ],
         pre [] [ text (hiddenWordForm word correct)],
-        div [] [ text ("Incorrect letters: " ++ (setToString incorrect)) ],
-        div [] [ text ("Correct letters: " ++ (setToString correct)) ],
         div [] [ text ("Letters left: " ++ (String.fromInt ((Set.size (letters word)) - (Set.size correct))))],
         footer [] [ text "Ascii art by https://ascii.co.uk/art/hangman" ]
       ]
