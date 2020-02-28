@@ -13,6 +13,9 @@ jobs:
         # with:
         #   submodules: true
 
+      - name: Setup Elm
+        uses: justgook/setup-elm@v1
+
       - name: Build
         run: elm make src/Main.elm --output ./out/index.html
 
