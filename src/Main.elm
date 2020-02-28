@@ -33,7 +33,7 @@ noSpaces s =
 
 randomWord : Random.Generator Word
 randomWord =
-    Random.uniform "computer science" [ "philosophy", "linguistics", "economics", "mathematics" ]
+    Random.uniform "komu w drogę temu cukier do szafy" [ "baba z wozu nie ma co jeść", "kto pod kim dołki kopie ten nosił wilka", "gość w dom razy kilka ", "w matematyce nie ma dróg królewskich" ]
 
 
 type Key
@@ -359,13 +359,13 @@ viewGame model =
     case model of
         Start ->
             div []
-                [ text "Wanna play some hangman?"
+                [ text "Co ty na partyjkę w wisielca?"
                 , br [] []
                 , button [ onClick Begin, style "margin-top" "1em" ] [ text "Yes!" ]
                 , footer [ style "font-size" "12px", style "padding-top" "1em" ]
                     [ text "Wiktor Czajkowski 2019"
                     , br [] []
-                    , text "Ascii art by "
+                    , text "Ascii z "
                     , a [ href "https://ascii.co.uk/art/hangman" ] [ text "ascii.co.uk" ]
                     ]
                 ]
@@ -388,14 +388,14 @@ viewResult message =
     div []
         [ text message
         , br [] []
-        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Another one?" ]
+        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Kolejne hasło? ( ͡° ͜ʖ ͡°)" ]
         ]
 
 
 viewEnd result =
     case result of
         Won word ->
-            viewResult ("You gussed it, the word is \"" ++ word ++ "\"!")
+            viewResult ("Zgadłeś/-aś! Hasło to \"" ++ word ++ "\"!")
 
         Lost ->
-            viewResult "You lost!"
+            viewResult "Przegrałeś/-aś!"
