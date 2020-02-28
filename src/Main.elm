@@ -1,14 +1,14 @@
 module Main exposing (..)
 
-import Set exposing (Set)
 import Array exposing (Array)
 import Browser
 import Browser.Events exposing (onKeyPress)
-import Html exposing (Html, button, div, text, pre, footer, p, a, br)
-import Html.Attributes exposing (style, href)
+import Html exposing (Html, a, br, button, div, footer, p, pre, text)
+import Html.Attributes exposing (href, style)
 import Html.Events exposing (onClick)
-import Random
 import Json.Decode as Decode exposing (Decoder, field)
+import Random
+import Set exposing (Set)
 
 
 
@@ -16,161 +16,228 @@ import Json.Decode as Decode exposing (Decoder, field)
 
 
 main =
-  Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+
 
 
 -- LIB
 
+
 letters s =
-  String.toList s |> Set.fromList
+    String.toList s |> Set.fromList
+
 
 randomWord : Random.Generator Word
 randomWord =
-  Random.uniform "chicken" ["test"]
+    Random.uniform "chicken" [ "test" ]
+
 
 type Key
-  = Character Char
-  | Control String
+    = Character Char
+    | Control String
+
 
 keyDecoder : Decoder Msg
 keyDecoder =
-  Decode.map (toKey >> KeyPressed) (field "key" Decode.string)
+    Decode.map (toKey >> KeyPressed) (field "key" Decode.string)
+
 
 toKey : String -> Key
 toKey string =
-  case String.uncons string of
-    Just (char, "") ->
-      Character char
+    case String.uncons string of
+        Just ( char, "" ) ->
+            Character char
 
-    _ ->
-      Control string
+        _ ->
+            Control string
+
+
 
 -- MODEL
 
-type alias Word = String
-type alias TriesLeft = Int
-type alias LettersLeft = Int
 
-type alias CorrectLetters = Set Char
+type alias Word =
+    String
 
-type alias IncorrectLetters = Set Char
 
-type Result = Won | Lost
+type alias TriesLeft =
+    Int
+
+
+type alias LettersLeft =
+    Int
+
+
+type alias CorrectLetters =
+    Set Char
+
+
+type alias IncorrectLetters =
+    Set Char
+
+
+type Result
+    = Won
+    | Lost
+
 
 type Model
-  = Start
-  | Playing Word CorrectLetters IncorrectLetters HangmanState
-  | End Result
+    = Start
+    | Playing Word CorrectLetters IncorrectLetters HangmanState
+    | End Result
 
 
-init : () -> (Model, Cmd Msg)
+init : () -> ( Model, Cmd Msg )
 init _ =
-  (Start, Cmd.none)
+    ( Start, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  onKeyPress keyDecoder
+    onKeyPress keyDecoder
+
+
 
 -- UPDATE
 
 
 type Msg
-  = KeyPressed Key
-  | Begin
-  | Restart
-  | WordSelected Word
+    = KeyPressed Key
+    | Begin
+    | Restart
+    | WordSelected Word
+
 
 withCmd model =
-  (model, Cmd.none)
+    ( model, Cmd.none )
+
 
 initialPlayingModel word =
-  Playing word Set.empty Set.empty (Transitionable Nothing) |> withCmd
+    Playing word Set.empty Set.empty (Transitionable Nothing) |> withCmd
+
 
 generateWordCmd =
-  Random.generate WordSelected randomWord
+    Random.generate WordSelected randomWord
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case model of
-    Start ->
-      case msg of
-        KeyPressed (Control "Enter") ->
-          (model, generateWordCmd)
-        Begin ->
-          (model, generateWordCmd)
-        WordSelected word ->
-          initialPlayingModel word
-        _ ->
-          model |> withCmd
+    case model of
+        Start ->
+            case msg of
+                KeyPressed (Control "Enter") ->
+                    ( model, generateWordCmd )
 
-    Playing word incorrect correct hangmanState ->
-      case msg of
-        KeyPressed (Character c) ->
-          let
-              isInWord = (String.any ((==) c) word)
-              wasGuessed = Set.member c (Set.union correct incorrect)
-              isCorrect = isInWord && not wasGuessed
-              lettersLeft = (Set.size (letters word)) - (Set.size correct)
-          in
-          case (isCorrect, hangmanState, lettersLeft) of
-            (True, _, 1) ->
-              End Won |> withCmd
-            (True, _, _) ->
-              Playing word incorrect (Set.insert c correct) hangmanState |> withCmd
-            (False, Final _, _) ->
-              End Lost |> withCmd
-            (False, Transitionable s, _) ->
-              Playing word (Set.insert c incorrect) correct (nextHangmanState s) |> withCmd
-        _ -> model |> withCmd
+                Begin ->
+                    ( model, generateWordCmd )
 
-    End result ->
-      case msg of
-        KeyPressed (Control "Enter") ->
-          (model, generateWordCmd)
-        Restart ->
-          (model, generateWordCmd)
-        WordSelected word ->
-          initialPlayingModel word
-        _ -> model |> withCmd
+                WordSelected word ->
+                    initialPlayingModel word
+
+                _ ->
+                    model |> withCmd
+
+        Playing word incorrect correct hangmanState ->
+            case msg of
+                KeyPressed (Character c) ->
+                    let
+                        isInWord =
+                            String.any ((==) c) word
+
+                        wasGuessed =
+                            Set.member c (Set.union correct incorrect)
+
+                        isCorrect =
+                            isInWord && not wasGuessed
+
+                        lettersLeft =
+                            Set.size (letters word) - Set.size correct
+                    in
+                    case ( isCorrect, hangmanState, lettersLeft ) of
+                        ( True, _, 1 ) ->
+                            End Won |> withCmd
+
+                        ( True, _, _ ) ->
+                            Playing word incorrect (Set.insert c correct) hangmanState |> withCmd
+
+                        ( False, Final _, _ ) ->
+                            End Lost |> withCmd
+
+                        ( False, Transitionable s, _ ) ->
+                            Playing word (Set.insert c incorrect) correct (nextHangmanState s) |> withCmd
+
+                _ ->
+                    model |> withCmd
+
+        End result ->
+            case msg of
+                KeyPressed (Control "Enter") ->
+                    ( model, generateWordCmd )
+
+                Restart ->
+                    ( model, generateWordCmd )
+
+                WordSelected word ->
+                    initialPlayingModel word
+
+                _ ->
+                    model |> withCmd
 
 
 setToString s =
-  Set.toList s |> String.fromList
+    Set.toList s |> String.fromList
+
 
 type HangmanState
-  = Transitionable TransitionableHangmanState
-  | Final FinalHangmanState
+    = Transitionable TransitionableHangmanState
+    | Final FinalHangmanState
+
 
 type TransitionableHangmanState
-  = Nothing
-  | Pole
-  | Head
-  | Torso
-  | LeftArm
-  | RightArm
-  | LeftLeg
+    = Nothing
+    | Pole
+    | Head
+    | Torso
+    | LeftArm
+    | RightArm
+    | LeftLeg
 
-type FinalHangmanState = RightLeg
+
+type FinalHangmanState
+    = RightLeg
+
 
 nextHangmanState : TransitionableHangmanState -> HangmanState
 nextHangmanState s =
-  case s of
-    Nothing -> Transitionable Pole
-    Pole -> Transitionable Head
-    Head -> Transitionable Torso
-    Torso -> Transitionable LeftArm
-    LeftArm -> Transitionable RightArm
-    RightArm -> Transitionable LeftLeg
-    LeftLeg -> Final RightLeg
+    case s of
+        Nothing ->
+            Transitionable Pole
+
+        Pole ->
+            Transitionable Head
+
+        Head ->
+            Transitionable Torso
+
+        Torso ->
+            Transitionable LeftArm
+
+        LeftArm ->
+            Transitionable RightArm
+
+        RightArm ->
+            Transitionable LeftLeg
+
+        LeftLeg ->
+            Final RightLeg
+
 
 hangmanAscii state =
-  case state of
-    Transitionable s ->
-      case s of
-        Nothing ->
-          """
+    case state of
+        Transitionable s ->
+            case s of
+                Nothing ->
+                    """
 
 
 
@@ -178,8 +245,9 @@ hangmanAscii state =
 
 
           """
-        Pole ->
-          """
+
+                Pole ->
+                    """
  +---+
      |
      |
@@ -187,26 +255,29 @@ hangmanAscii state =
      |
      |
           """
-        Head ->
-          """
- +---+
- |   |
- O   |
-     |
-     |
-     |
-          """
-        Torso ->
-          """
+
+                Head ->
+                    """
  +---+
  |   |
  O   |
+     |
+     |
+     |
+          """
+
+                Torso ->
+                    """
+ +---+
+ |   |
+ O   |
  |   |
      |
      |
           """
-        LeftArm ->
-          """
+
+                LeftArm ->
+                    """
  +---+
  |   |
  O   |
@@ -214,8 +285,9 @@ hangmanAscii state =
      |
      |
           """
-        RightArm ->
-          """
+
+                RightArm ->
+                    """
  +---+
  |   |
  O   |
@@ -223,8 +295,9 @@ hangmanAscii state =
      |
      |
           """
-        LeftLeg ->
-          """
+
+                LeftLeg ->
+                    """
  +---+
  |   |
  O   |
@@ -232,10 +305,11 @@ hangmanAscii state =
 /    |
      |
           """
-    Final s ->
-      case s of
-        RightLeg ->
-          """
+
+        Final s ->
+            case s of
+                RightLeg ->
+                    """
  +---+
  |   |
  O   |
@@ -244,70 +318,83 @@ hangmanAscii state =
      |
           """
 
-letterOrHidden b c =
-  case b of
-    True ->
-      c
-    False ->
-      '_'
 
-intertwine separator string  =
-  string
-  |> String.toList
-  |> List.map String.fromChar
-  |> String.join separator
+letterOrHidden b c =
+    case b of
+        True ->
+            c
+
+        False ->
+            '_'
+
+
+intertwine separator string =
+    string
+        |> String.toList
+        |> List.map String.fromChar
+        |> String.join separator
+
 
 hiddenWordForm word correctLetters =
-  let
-    hideIfNotGuessed = (\c -> letterOrHidden (Set.member c correctLetters) c)
-  in
-  word |> String.map hideIfNotGuessed |> intertwine " "
+    let
+        hideIfNotGuessed =
+            \c -> letterOrHidden (Set.member c correctLetters) c
+    in
+    word |> String.map hideIfNotGuessed |> intertwine " "
+
+
 
 -- VIEW
 
+
 viewContainer children =
-  div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
+    div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
 
 
 view : Model -> Html Msg
 view model =
-  viewContainer [
-    viewGame model
-  ]
+    viewContainer
+        [ viewGame model
+        ]
 
 
 viewResult message =
-  div [] [
-    text message,
-    br [] [],
-    button [ onClick Restart, style "margin-top" "1em" ] [ text "Again?" ]
-  ]
+    div []
+        [ text message
+        , br [] []
+        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Again?" ]
+        ]
+
 
 viewEnd result =
-  case result of
-    Won ->
-      viewResult "You won!"
-    Lost ->
-      viewResult "You lost!"
+    case result of
+        Won ->
+            viewResult "You won!"
+
+        Lost ->
+            viewResult "You lost!"
+
 
 viewGame model =
-  case model of
-    Start ->
-      div [] [
-        text "Wanna play some hangman?",
-        br [] [],
-        button [ onClick Begin, style "margin-top" "1em" ] [ text "Yes!" ],
-        footer [ style "font-size" "12px", style "padding-top" "1em" ] [
-          text "Wiktor Czajkowski 2019",
-          br [] [],
-          text "Ascii art by ",
-          a [ href "https://ascii.co.uk/art/hangman"] [ text "ascii.co.uk" ]
-        ]
-      ]
-    Playing word incorrect correct hangmanState ->
-      div [] [
-        pre [] [ text (hangmanAscii hangmanState) ],
-        pre [] [ text (hiddenWordForm word correct)]
-      ]
-    End result ->
-      viewEnd result
+    case model of
+        Start ->
+            div []
+                [ text "Wanna play some hangman?"
+                , br [] []
+                , button [ onClick Begin, style "margin-top" "1em" ] [ text "Yes!" ]
+                , footer [ style "font-size" "12px", style "padding-top" "1em" ]
+                    [ text "Wiktor Czajkowski 2019"
+                    , br [] []
+                    , text "Ascii art by "
+                    , a [ href "https://ascii.co.uk/art/hangman" ] [ text "ascii.co.uk" ]
+                    ]
+                ]
+
+        Playing word incorrect correct hangmanState ->
+            div []
+                [ pre [] [ text (hangmanAscii hangmanState) ]
+                , pre [] [ text (hiddenWordForm word correct) ]
+                ]
+
+        End result ->
+            viewEnd result
