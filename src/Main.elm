@@ -4,7 +4,8 @@ import Set exposing (Set)
 import Array exposing (Array)
 import Browser
 import Browser.Events exposing (onKeyPress)
-import Html exposing (Html, button, div, text, pre, footer, p)
+import Html exposing (Html, button, div, text, pre, footer, p, a, br)
+import Html.Attributes exposing (style, href)
 import Html.Events exposing (onClick)
 import Random
 import Json.Decode as Decode exposing (Decoder, field)
@@ -179,68 +180,68 @@ hangmanAscii state =
           """
         Pole ->
           """
-            +---+
-                |
-                |
-                |
-                |
-                |
+ +---+
+     |
+     |
+     |
+     |
+     |
           """
         Head ->
           """
-            +---+
-            |   |
-            O   |
-                |
-                |
-                |
+ +---+
+ |   |
+ O   |
+     |
+     |
+     |
           """
         Torso ->
           """
-            +---+
-            |   |
-            O   |
-            |   |
-                |
-                |
+ +---+
+ |   |
+ O   |
+ |   |
+     |
+     |
           """
         LeftArm ->
           """
-            +---+
-            |   |
-            O   |
-           /|   |
-                |
-                |
+ +---+
+ |   |
+ O   |
+/|   |
+     |
+     |
           """
         RightArm ->
           """
-            +---+
-            |   |
-            O   |
-           /|\\  |
-                |
-                |
+ +---+
+ |   |
+ O   |
+/|\\  |
+     |
+     |
           """
         LeftLeg ->
           """
-            +---+
-            |   |
-            O   |
-           /|\\  |
-           /    |
-                |
+ +---+
+ |   |
+ O   |
+/|\\  |
+/    |
+     |
           """
     Final s ->
       case s of
         RightLeg ->
           """
-            +---+
-            |   |
-            O   |
-           /|\\  |
-           / \\  |
-                |
+ +---+
+ |   |
+ O   |
+/|\\  |
+/ \\  |
+     |
           """
 
 letterOrHidden b c =
@@ -264,29 +265,49 @@ hiddenWordForm word correctLetters =
 
 -- VIEW
 
+viewContainer children =
+  div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
+
 
 view : Model -> Html Msg
 view model =
+  viewContainer [
+    viewGame model
+  ]
+
+
+viewResult message =
+  div [] [
+    text message,
+    br [] [],
+    button [ onClick Restart, style "margin-top" "1em" ] [ text "Again?" ]
+  ]
+
+viewEnd result =
+  case result of
+    Won ->
+      viewResult "You won!"
+    Lost ->
+      viewResult "You lost!"
+
+viewGame model =
   case model of
     Start ->
-      button [ onClick Begin ] [ text "Start" ]
+      div [] [
+        text "Wanna play some hangman?",
+        br [] [],
+        button [ onClick Begin, style "margin-top" "1em" ] [ text "Yes!" ],
+        footer [ style "font-size" "12px", style "padding-top" "1em" ] [
+          text "Wiktor Czajkowski 2019",
+          br [] [],
+          text "Ascii art by ",
+          a [ href "https://ascii.co.uk/art/hangman"] [ text "ascii.co.uk" ]
+        ]
+      ]
     Playing word incorrect correct hangmanState ->
       div [] [
         pre [] [ text (hangmanAscii hangmanState) ],
-        pre [] [ text (hiddenWordForm word correct)],
-        footer [] [ text "Ascii art by https://ascii.co.uk/art/hangman" ]
+        pre [] [ text (hiddenWordForm word correct)]
       ]
     End result ->
-      case result of
-        Won ->
-          div [] [
-            text "You won!",
-            button [ onClick Restart ] [ text "Again?" ]
-          ]
-        Lost ->
-          div [] [
-            text "You lost!",
-            button [ onClick Restart ] [ text "Again?" ]
-          ]
-
-
+      viewEnd result
