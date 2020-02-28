@@ -85,17 +85,24 @@ type Msg
 withCmd model =
   (model, Cmd.none)
 
+initialPlayingModel word =
+  Playing word Set.empty Set.empty |> withCmd
+
+generateWordCmd =
+  Random.generate WordSelected randomWord
+
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case model of
     Start ->
       case msg of
         KeyPressed (Control "Enter") ->
-          (model, Random.generate WordSelected randomWord)
+          (model, generateWordCmd)
         Begin ->
-          (model, Random.generate WordSelected randomWord)
+          (model, generateWordCmd)
         WordSelected word ->
-          Playing word Set.empty Set.empty |> withCmd
+          initialPlayingModel word
         _ ->
           model |> withCmd
 
@@ -117,11 +124,11 @@ update msg model =
     End result ->
       case msg of
         KeyPressed (Control "Enter") ->
-          (model, Random.generate WordSelected randomWord)
+          (model, generateWordCmd)
         Restart ->
-          (model, Random.generate WordSelected randomWord)
+          (model, generateWordCmd)
         WordSelected word ->
-          Playing word Set.empty Set.empty |> withCmd
+          initialPlayingModel word
         _ -> model |> withCmd
 
 
