@@ -24,12 +24,16 @@ main =
 
 
 letters s =
-    String.toList s |> Set.fromList
+    s |> noSpaces |> String.toList |> Set.fromList
+
+
+noSpaces s =
+    String.replace " " "" s
 
 
 randomWord : Random.Generator Word
 randomWord =
-    Random.uniform "chicken" [ "test", "stuff", "rotfl", "lmao", "hangman", "meta" ]
+    Random.uniform "computer science" [ "philosophy", "linguistics", "economics", "mathematics" ]
 
 
 type Key
@@ -153,7 +157,7 @@ update msg model =
                 KeyPressed (Character c) ->
                     let
                         isInWord =
-                            String.any ((==) c) word
+                            String.any ((==) c) (noSpaces word)
 
                         wasGuessed =
                             Set.member c (Set.union correct incorrect)
@@ -332,7 +336,12 @@ letterOrHidden b c =
             c
 
         False ->
-            '_'
+            case c of
+                ' ' ->
+                    c
+
+                _ ->
+                    '_'
 
 
 
