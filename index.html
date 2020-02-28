@@ -5888,9 +5888,9 @@ var $elm$random$Random$uniform = F2(
 	});
 var $author$project$Main$randomWord = A2(
 	$elm$random$Random$uniform,
-	'chicken',
+	'computer science',
 	_List_fromArray(
-		['test', 'stuff', 'rotfl', 'lmao', 'hangman', 'meta']));
+		['philosophy', 'linguistics', 'economics', 'mathematics']));
 var $author$project$Main$generateWordCmd = A2($elm$random$Random$generate, $author$project$Main$WordSelected, $author$project$Main$randomWord);
 var $author$project$Main$Nothing = {$: 'Nothing'};
 var $author$project$Main$Transitionable = function (a) {
@@ -5921,13 +5921,24 @@ var $elm$core$Set$insert = F2(
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $author$project$Main$noSpaces = function (s) {
+	return A3($elm$core$String$replace, ' ', '', s);
+};
 var $elm$core$String$foldr = _String_foldr;
 var $elm$core$String$toList = function (string) {
 	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
 };
 var $author$project$Main$letters = function (s) {
 	return $elm$core$Set$fromList(
-		$elm$core$String$toList(s));
+		$elm$core$String$toList(
+			$author$project$Main$noSpaces(s)));
 };
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
@@ -6073,7 +6084,7 @@ var $author$project$Main$update = F2(
 					var isInWord = A2(
 						$elm$core$String$any,
 						$elm$core$Basics$eq(c),
-						word);
+						$author$project$Main$noSpaces(word));
 					var isCorrect = isInWord && (!wasGuessed);
 					var _v3 = _Utils_Tuple3(isCorrect, hangmanState, lettersLeft);
 					if (_v3.a) {
@@ -6195,7 +6206,11 @@ var $author$project$Main$letterOrHidden = F2(
 		if (b) {
 			return c;
 		} else {
-			return _Utils_chr('_');
+			if (' ' === c.valueOf()) {
+				return c;
+			} else {
+				return _Utils_chr('_');
+			}
 		}
 	});
 var $elm$core$String$map = _String_map;
