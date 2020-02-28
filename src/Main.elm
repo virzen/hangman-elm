@@ -109,9 +109,11 @@ update msg model =
         KeyPressed (Character c) ->
           let
               isInWord = (String.any ((==) c) word)
+              wasGuessed = Set.member c (Set.union correct incorrect)
+              isCorrect = isInWord && not wasGuessed
               lettersLeft = (Set.size (letters word)) - (Set.size correct)
           in
-          case (isInWord, hangmanState, lettersLeft) of
+          case (isCorrect, hangmanState, lettersLeft) of
             (True, _, 1) ->
               End Won |> withCmd
             (True, _, _) ->
