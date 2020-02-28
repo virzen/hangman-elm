@@ -52,20 +52,31 @@ toKey string =
             Control string
 
 
+setToString s =
+    Set.toList s |> String.fromList
+
+
+intertwine separator string =
+    string
+        |> String.toList
+        |> List.map String.fromChar
+        |> String.join separator
+
+
+hiddenWordForm word correctLetters =
+    let
+        hideIfNotGuessed =
+            \c -> letterOrHidden (Set.member c correctLetters) c
+    in
+    word |> String.map hideIfNotGuessed |> intertwine " "
+
+
 
 -- MODEL
 
 
 type alias Word =
     String
-
-
-type alias TriesLeft =
-    Int
-
-
-type alias LettersLeft =
-    Int
 
 
 type alias CorrectLetters =
@@ -182,10 +193,6 @@ update msg model =
 
                 _ ->
                     model |> withCmd
-
-
-setToString s =
-    Set.toList s |> String.fromList
 
 
 type HangmanState
@@ -328,27 +335,8 @@ letterOrHidden b c =
             '_'
 
 
-intertwine separator string =
-    string
-        |> String.toList
-        |> List.map String.fromChar
-        |> String.join separator
-
-
-hiddenWordForm word correctLetters =
-    let
-        hideIfNotGuessed =
-            \c -> letterOrHidden (Set.member c correctLetters) c
-    in
-    word |> String.map hideIfNotGuessed |> intertwine " "
-
-
 
 -- VIEW
-
-
-viewContainer children =
-    div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
 
 
 view : Model -> Html Msg
@@ -356,23 +344,6 @@ view model =
     viewContainer
         [ viewGame model
         ]
-
-
-viewResult message =
-    div []
-        [ text message
-        , br [] []
-        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Again?" ]
-        ]
-
-
-viewEnd result =
-    case result of
-        Won ->
-            viewResult "You won!"
-
-        Lost ->
-            viewResult "You lost!"
 
 
 viewGame model =
@@ -398,3 +369,24 @@ viewGame model =
 
         End result ->
             viewEnd result
+
+
+viewContainer children =
+    div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
+
+
+viewResult message =
+    div []
+        [ text message
+        , br [] []
+        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Again?" ]
+        ]
+
+
+viewEnd result =
+    case result of
+        Won ->
+            viewResult "You won!"
+
+        Lost ->
+            viewResult "You lost!"
