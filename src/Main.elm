@@ -29,7 +29,7 @@ letters s =
 
 randomWord : Random.Generator Word
 randomWord =
-    Random.uniform "chicken" [ "test" ]
+    Random.uniform "chicken" [ "test", "stuff", "rotfl", "lmao", "hangman", "meta" ]
 
 
 type Key
