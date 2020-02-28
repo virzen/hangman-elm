@@ -5689,7 +5689,9 @@ var $author$project$Main$Playing = F4(
 	function (a, b, c, d) {
 		return {$: 'Playing', a: a, b: b, c: c, d: d};
 	});
-var $author$project$Main$Won = {$: 'Won'};
+var $author$project$Main$Won = function (a) {
+	return {$: 'Won', a: a};
+};
 var $elm$core$String$any = _String_any;
 var $author$project$Main$WordSelected = function (a) {
 	return {$: 'WordSelected', a: a};
@@ -6077,7 +6079,8 @@ var $author$project$Main$update = F2(
 					if (_v3.a) {
 						if (_v3.c === 1) {
 							return $author$project$Main$withCmd(
-								$author$project$Main$End($author$project$Main$Won));
+								$author$project$Main$End(
+									$author$project$Main$Won(word)));
 						} else {
 							return $author$project$Main$withCmd(
 								A4(
@@ -6261,13 +6264,14 @@ var $author$project$Main$viewResult = function (message) {
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Again?')
+						$elm$html$Html$text('Another one?')
 					]))
 			]));
 };
 var $author$project$Main$viewEnd = function (result) {
 	if (result.$ === 'Won') {
-		return $author$project$Main$viewResult('You won!');
+		var word = result.a;
+		return $author$project$Main$viewResult('You gussed it, the word is \"' + (word + '\"!'));
 	} else {
 		return $author$project$Main$viewResult('You lost!');
 	}
