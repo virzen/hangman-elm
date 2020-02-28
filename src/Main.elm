@@ -4,7 +4,7 @@ import Set exposing (Set)
 import Array exposing (Array)
 import Browser
 import Browser.Events exposing (onKeyPress)
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, button, div, text, pre, footer)
 import Html.Events exposing (onClick)
 import Random
 import Json.Decode as Decode exposing (Decoder, field)
@@ -19,8 +19,6 @@ main =
 
 
 -- LIB
-
-tries = 10
 
 letters s =
   String.toList s |> Set.fromList
@@ -60,7 +58,7 @@ type Result = Won | Lost
 
 type Model
   = Start
-  | Playing Word CorrectLetters IncorrectLetters
+  | Playing Word CorrectLetters IncorrectLetters HangmanState
   | End Result
 
 
@@ -86,7 +84,7 @@ withCmd model =
   (model, Cmd.none)
 
 initialPlayingModel word =
-  Playing word Set.empty Set.empty |> withCmd
+  Playing word Set.empty Set.empty (Transitionable Nothing) |> withCmd
 
 generateWordCmd =
   Random.generate WordSelected randomWord
@@ -106,19 +104,22 @@ update msg model =
         _ ->
           model |> withCmd
 
-    Playing word incorrect correct ->
+    Playing word incorrect correct hangmanState ->
       case msg of
         KeyPressed (Character c) ->
           let
               isInWord = (String.any ((==) c) word)
-              triesLeft = tries - (Set.size incorrect)
               lettersLeft = (Set.size (letters word)) - (Set.size correct)
           in
-          case (isInWord, triesLeft, lettersLeft) of
-            (True, _, 1) -> End Won |> withCmd
-            (True, _, _) -> Playing word incorrect (Set.insert c correct) |> withCmd
-            (False, 1, _) -> End Lost |> withCmd
-            (False, _, _) -> Playing word (Set.insert c incorrect) correct |> withCmd
+          case (isInWord, hangmanState, lettersLeft) of
+            (True, _, 1) ->
+              End Won |> withCmd
+            (True, _, _) ->
+              Playing word incorrect (Set.insert c correct) hangmanState |> withCmd
+            (False, Final _, _) ->
+              End Lost |> withCmd
+            (False, Transitionable s, _) ->
+              Playing word (Set.insert c incorrect) correct (nextHangmanState s) |> withCmd
         _ -> model |> withCmd
 
     End result ->
@@ -135,6 +136,110 @@ update msg model =
 setToString s =
   Set.toList s |> String.fromList
 
+type HangmanState
+  = Transitionable TransitionableHangmanState
+  | Final FinalHangmanState
+
+type TransitionableHangmanState
+  = Nothing
+  | Pole
+  | Head
+  | Torso
+  | LeftArm
+  | RightArm
+  | LeftLeg
+
+type FinalHangmanState = RightLeg
+
+nextHangmanState : TransitionableHangmanState -> HangmanState
+nextHangmanState s =
+  case s of
+    Nothing -> Transitionable Pole
+    Pole -> Transitionable Head
+    Head -> Transitionable Torso
+    Torso -> Transitionable LeftArm
+    LeftArm -> Transitionable RightArm
+    RightArm -> Transitionable LeftLeg
+    LeftLeg -> Final RightLeg
+
+hangmanAscii state =
+  case state of
+    Transitionable s ->
+      case s of
+        Nothing ->
+          """
+
+
+
+
+
+
+          """
+        Pole ->
+          """
+            +---+
+                |
+                |
+                |
+                |
+                |
+          """
+        Head ->
+          """
+            +---+
+            |   |
+            O   |
+                |
+                |
+                |
+          """
+        Torso ->
+          """
+            +---+
+            |   |
+            O   |
+            |   |
+                |
+                |
+          """
+        LeftArm ->
+          """
+            +---+
+            |   |
+            O   |
+           /|   |
+                |
+                |
+          """
+        RightArm ->
+          """
+            +---+
+            |   |
+            O   |
+           /|\\  |
+                |
+                |
+          """
+        LeftLeg ->
+          """
+            +---+
+            |   |
+            O   |
+           /|\\  |
+           /    |
+                |
+          """
+    Final s ->
+      case s of
+        RightLeg ->
+          """
+            +---+
+            |   |
+            O   |
+           /|\\  |
+           / \\  |
+                |
+          """
 
 
 -- VIEW
@@ -145,13 +250,14 @@ view model =
   case model of
     Start ->
       button [ onClick Begin ] [ text "Start" ]
-    Playing word incorrect correct ->
+    Playing word incorrect correct hangmanState ->
       div [] [
+        pre [] [ text (hangmanAscii hangmanState) ],
         div [] [ text ("Selected word: " ++ word) ],
         div [] [ text ("Incorrect letters: " ++ (setToString incorrect)) ],
         div [] [ text ("Correct letters: " ++ (setToString correct)) ],
-        div [] [ text ("Tries left: " ++ (String.fromInt (tries - (Set.size incorrect))))],
-        div [] [ text ("Letters left: " ++ (String.fromInt ((Set.size (letters word)) - (Set.size correct))))]
+        div [] [ text ("Letters left: " ++ (String.fromInt ((Set.size (letters word)) - (Set.size correct))))],
+        footer [] [ text "Ascii art by https://ascii.co.uk/art/hangman" ]
       ]
     End result ->
       case result of
