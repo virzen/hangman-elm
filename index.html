@@ -5927,6 +5927,51 @@ var $author$project$Main$letters = function (s) {
 	return $elm$core$Set$fromList(
 		$elm$core$String$toList(s));
 };
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Set$member = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$member, key, dict);
+	});
 var $author$project$Main$Final = function (a) {
 	return {$: 'Final', a: a};
 };
@@ -5955,6 +6000,7 @@ var $author$project$Main$nextHangmanState = function (s) {
 			return $author$project$Main$Final($author$project$Main$RightLeg);
 	}
 };
+var $elm$core$Basics$not = _Basics_not;
 var $elm$core$Dict$sizeHelp = F2(
 	function (n, dict) {
 		sizeHelp:
@@ -5979,6 +6025,13 @@ var $elm$core$Set$size = function (_v0) {
 	var dict = _v0.a;
 	return $elm$core$Dict$size(dict);
 };
+var $elm$core$Set$union = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$union, dict1, dict2));
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (model.$) {
@@ -6009,13 +6062,18 @@ var $author$project$Main$update = F2(
 				var hangmanState = model.d;
 				if ((msg.$ === 'KeyPressed') && (msg.a.$ === 'Character')) {
 					var c = msg.a.a;
+					var wasGuessed = A2(
+						$elm$core$Set$member,
+						c,
+						A2($elm$core$Set$union, correct, incorrect));
 					var lettersLeft = $elm$core$Set$size(
 						$author$project$Main$letters(word)) - $elm$core$Set$size(correct);
 					var isInWord = A2(
 						$elm$core$String$any,
 						$elm$core$Basics$eq(c),
 						word);
-					var _v3 = _Utils_Tuple3(isInWord, hangmanState, lettersLeft);
+					var isCorrect = isInWord && (!wasGuessed);
+					var _v3 = _Utils_Tuple3(isCorrect, hangmanState, lettersLeft);
 					if (_v3.a) {
 						if (_v3.c === 1) {
 							return $author$project$Main$withCmd(
@@ -6099,6 +6157,42 @@ var $author$project$Main$hangmanAscii = function (state) {
 		return '\n            +---+\n            |   |\n            O   |\n           /|\\  |\n           / \\  |\n                |\n          ';
 	}
 };
+var $elm$core$String$cons = _String_cons;
+var $elm$core$String$fromChar = function (_char) {
+	return A2($elm$core$String$cons, _char, '');
+};
+var $author$project$Main$intertwine = F2(
+	function (separator, string) {
+		return A2(
+			$elm$core$String$join,
+			separator,
+			A2(
+				$elm$core$List$map,
+				$elm$core$String$fromChar,
+				$elm$core$String$toList(string)));
+	});
+var $author$project$Main$letterOrHidden = F2(
+	function (b, c) {
+		if (b) {
+			return c;
+		} else {
+			return _Utils_chr('_');
+		}
+	});
+var $elm$core$String$map = _String_map;
+var $author$project$Main$hiddenWordForm = F2(
+	function (word, correctLetters) {
+		var hideIfNotGuessed = function (c) {
+			return A2(
+				$author$project$Main$letterOrHidden,
+				A2($elm$core$Set$member, c, correctLetters),
+				c);
+		};
+		return A2(
+			$author$project$Main$intertwine,
+			' ',
+			A2($elm$core$String$map, hideIfNotGuessed, word));
+	});
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6117,11 +6211,6 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		$elm$json$Json$Decode$succeed(msg));
 };
 var $elm$html$Html$pre = _VirtualDom_node('pre');
-var $elm$core$String$fromList = _String_fromList;
-var $author$project$Main$setToString = function (s) {
-	return $elm$core$String$fromList(
-		$elm$core$Set$toList(s));
-};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Main$view = function (model) {
@@ -6156,37 +6245,12 @@ var $author$project$Main$view = function (model) {
 								$author$project$Main$hangmanAscii(hangmanState))
 							])),
 						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Selected word: ' + word)
-							])),
-						A2(
-						$elm$html$Html$div,
+						$elm$html$Html$pre,
 						_List_Nil,
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								'Incorrect letters: ' + $author$project$Main$setToString(incorrect))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								'Correct letters: ' + $author$project$Main$setToString(correct))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								'Letters left: ' + $elm$core$String$fromInt(
-									$elm$core$Set$size(
-										$author$project$Main$letters(word)) - $elm$core$Set$size(correct)))
+								A2($author$project$Main$hiddenWordForm, word, correct))
 							])),
 						A2(
 						$elm$html$Html$footer,
