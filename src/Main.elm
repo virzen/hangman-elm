@@ -392,8 +392,8 @@ viewGame model =
 
         Playing word incorrect correct hangmanState ->
             div []
-                [ pre [] [ text (hangmanAscii hangmanState) ]
-                , pre [] [ text (hiddenWordForm word correct) ]
+                [ pre [ style "font-size" "18px" ] [ text (hangmanAscii hangmanState) ]
+                , pre [ style "font-size" "18px" ] [ text (hiddenWordForm word correct) ]
                 ]
 
         End result ->
