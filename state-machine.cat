@@ -1,0 +1,10 @@
+end {
+  won, lost;
+};
+
+start -> playing: begin/select word;
+playing -> playing: letter[correct & not all guessed];
+playing -> playing: letter[incorrect & tries left];
+playing -> won: letter[correct & all guesed);
+playing -> lost: letter[incorrect & no tries left;
+end -> playing: restart/select word;
