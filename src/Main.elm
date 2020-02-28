@@ -4,7 +4,7 @@ import Set exposing (Set)
 import Array exposing (Array)
 import Browser
 import Browser.Events exposing (onKeyPress)
-import Html exposing (Html, button, div, text, pre, footer)
+import Html exposing (Html, button, div, text, pre, footer, p)
 import Html.Events exposing (onClick)
 import Random
 import Json.Decode as Decode exposing (Decoder, field)
@@ -241,6 +241,24 @@ hangmanAscii state =
                 |
           """
 
+letterOrHidden b c =
+  case b of
+    True ->
+      c
+    False ->
+      '_'
+
+intertwine separator string  =
+  string
+  |> String.toList
+  |> List.map String.fromChar
+  |> String.join separator
+
+hiddenWordForm word correctLetters =
+  let
+    hideIfNotGuessed = (\c -> letterOrHidden (Set.member c correctLetters) c)
+  in
+  word |> String.map hideIfNotGuessed |> intertwine " "
 
 -- VIEW
 
@@ -253,7 +271,7 @@ view model =
     Playing word incorrect correct hangmanState ->
       div [] [
         pre [] [ text (hangmanAscii hangmanState) ],
-        div [] [ text ("Selected word: " ++ word) ],
+        pre [] [ text (hiddenWordForm word correct)],
         div [] [ text ("Incorrect letters: " ++ (setToString incorrect)) ],
         div [] [ text ("Correct letters: " ++ (setToString correct)) ],
         div [] [ text ("Letters left: " ++ (String.fromInt ((Set.size (letters word)) - (Set.size correct))))],
