@@ -12,7 +12,7 @@ setup:
 	npm i -g elm-live
 
 elm: $(ELM_FILES)
-	elm make src/Main.elm --output $(OUT_DIR)/main.js
+	elm make src/Main.elm --optimize --output $(OUT_DIR)/main.js
 
 static: $(STATIC_FILES)
 	cp $(STATIC_FILES) $(OUT_DIR)
