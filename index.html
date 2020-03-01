@@ -5691,7 +5691,9 @@ var $author$project$Main$subscriptions = function (model) {
 var $author$project$Main$End = function (a) {
 	return {$: 'End', a: a};
 };
-var $author$project$Main$Lost = {$: 'Lost'};
+var $author$project$Main$Lost = function (a) {
+	return {$: 'Lost', a: a};
+};
 var $author$project$Main$Playing = F4(
 	function (a, b, c, d) {
 		return {$: 'Playing', a: a, b: b, c: c, d: d};
@@ -6132,7 +6134,8 @@ var $author$project$Main$updateGame = F2(
 					} else {
 						if (_v4.b.$ === 'Final') {
 							return $author$project$Main$withCmd(
-								$author$project$Main$End($author$project$Main$Lost));
+								$author$project$Main$End(
+									$author$project$Main$Lost(word)));
 						} else {
 							var s = _v4.b.a;
 							return $author$project$Main$withCmd(
@@ -6152,6 +6155,10 @@ var $author$project$Main$updateGame = F2(
 				_v5$3:
 				while (true) {
 					switch (msg.$) {
+						case 'AnotherPhrase':
+							return _Utils_Tuple2(
+								game,
+								$author$project$Main$generateWordCmd(lang));
 						case 'KeyPressed':
 							if ((msg.a.$ === 'Control') && (msg.a.a === 'Enter')) {
 								return _Utils_Tuple2(
@@ -6160,10 +6167,6 @@ var $author$project$Main$updateGame = F2(
 							} else {
 								break _v5$3;
 							}
-						case 'Restart':
-							return _Utils_Tuple2(
-								game,
-								$author$project$Main$generateWordCmd(lang));
 						case 'WordSelected':
 							var word = msg.a;
 							return $author$project$Main$initialPlayingModel(word);
@@ -6171,7 +6174,16 @@ var $author$project$Main$updateGame = F2(
 							break _v5$3;
 					}
 				}
-				return $author$project$Main$withCmd(game);
+				if (result.$ === 'Lost') {
+					var word = result.a;
+					if (msg.$ === 'TryAgain') {
+						return $author$project$Main$initialPlayingModel(word);
+					} else {
+						return $author$project$Main$withCmd(game);
+					}
+				} else {
+					return $author$project$Main$withCmd(game);
+				}
 		}
 	});
 var $author$project$Main$ENG = {$: 'ENG'};
@@ -6247,9 +6259,9 @@ var $author$project$Main$getTranslation = F2(
 				return A3($author$project$Main$chooseTranslation, lang, 'Wygrałeś/-aś! Hasło to \"', 'You won! The password is \"');
 			case 'GameLost':
 				return A3($author$project$Main$chooseTranslation, lang, 'Przegrałeś/-aś!', 'You lost!');
-			case 'SamePhraseAgain':
+			case 'GiveMeSamePhraseAgain':
 				return A3($author$project$Main$chooseTranslation, lang, 'Dawaj jeszcze raz!', 'Lemme try again!');
-			case 'AnotherPhrase':
+			case 'GiveMeAnotherPhrase':
 				return A3($author$project$Main$chooseTranslation, lang, 'Inne hasło? ( ͡° ͜ʖ ͡°)', 'Different phrase? ( ͡° ͜ʖ ͡°)');
 			default:
 				return A3($author$project$Main$chooseTranslation, lang, 'Ascii art z ', 'Ascii art from ');
@@ -6353,46 +6365,72 @@ var $elm$html$Html$Events$onClick = function (msg) {
 var $elm$html$Html$pre = _VirtualDom_node('pre');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$AnotherPhrase = {$: 'AnotherPhrase'};
 var $author$project$Main$GameLost = {$: 'GameLost'};
 var $author$project$Main$GameWon = {$: 'GameWon'};
-var $author$project$Main$AnotherPhrase = {$: 'AnotherPhrase'};
-var $author$project$Main$Restart = {$: 'Restart'};
-var $author$project$Main$viewResult = F2(
-	function (t, message) {
-		return A2(
-			$elm$html$Html$div,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text(message),
-					A2($elm$html$Html$br, _List_Nil, _List_Nil),
-					A2(
-					$elm$html$Html$button,
-					_List_fromArray(
-						[
-							$elm$html$Html$Events$onClick($author$project$Main$Restart),
-							A2($elm$html$Html$Attributes$style, 'margin-top', '1em')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							t($author$project$Main$AnotherPhrase))
-						]))
-				]));
-	});
+var $author$project$Main$GiveMeAnotherPhrase = {$: 'GiveMeAnotherPhrase'};
+var $author$project$Main$GiveMeSamePhraseAgain = {$: 'GiveMeSamePhraseAgain'};
+var $author$project$Main$TryAgain = {$: 'TryAgain'};
 var $author$project$Main$viewEnd = F2(
 	function (t, result) {
 		if (result.$ === 'Won') {
 			var word = result.a;
 			return A2(
-				$author$project$Main$viewResult,
-				t,
-				t($author$project$Main$GameWon) + (word + '\"!'));
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						t($author$project$Main$GameWon) + (word + '\"!')),
+						A2($elm$html$Html$br, _List_Nil, _List_Nil),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$AnotherPhrase),
+								A2($elm$html$Html$Attributes$style, 'margin-top', '1em')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								t($author$project$Main$GiveMeAnotherPhrase))
+							]))
+					]));
 		} else {
+			var word = result.a;
 			return A2(
-				$author$project$Main$viewResult,
-				t,
-				t($author$project$Main$GameLost));
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						t($author$project$Main$GameLost)),
+						A2($elm$html$Html$br, _List_Nil, _List_Nil),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$AnotherPhrase),
+								A2($elm$html$Html$Attributes$style, 'margin-top', '1em')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								t($author$project$Main$GiveMeAnotherPhrase))
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$TryAgain),
+								A2($elm$html$Html$Attributes$style, 'margin-top', '1em')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								t($author$project$Main$GiveMeSamePhraseAgain))
+							]))
+					]));
 		}
 	});
 var $author$project$Main$LangChanged = function (a) {
