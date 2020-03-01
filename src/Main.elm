@@ -470,7 +470,7 @@ getTranslation lang tk =
             chooseTranslation lang "Ascii art z " "Ascii art from "
 
         TypeHereToPlay ->
-            chooseTranslation lang "Pisz tutaj" "Type here"
+            chooseTranslation lang "Pisz tutaj: " "Type here: "
 
 
 view : Model -> Html Msg
