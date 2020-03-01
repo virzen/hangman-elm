@@ -1,13 +1,17 @@
-ELM_FILES=
+ELM_FILES=src/Main.elm
 STATIC_FILES=src/index.html src/style.css
 OUT_DIR=out
 
 build: elm static
 
+watch:
+	elm-live $(ELM_FILES) --dir=$(OUT_DIR)
+
 setup:
 	elm install
+	npm i -g elm-live
 
-elm: src/Main.elm
+elm: $(ELM_FILES)
 	elm make src/Main.elm --output $(OUT_DIR)/main.js
 
 static: $(STATIC_FILES)
