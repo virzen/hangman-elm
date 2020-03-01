@@ -96,15 +96,24 @@ type Result
     | Lost
 
 
-type Model
+type Game
     = Start
     | Playing Word CorrectLetters IncorrectLetters HangmanState
     | End Result
 
 
+type Lang
+    = PL
+    | ENG
+
+
+type Model
+    = Model Lang Game
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Start, Cmd.none )
+    ( Model PL Start, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -121,6 +130,7 @@ type Msg
     | Begin
     | Restart
     | WordSelected Word
+    | LangChanged Lang
 
 
 withCmd model =
@@ -135,22 +145,21 @@ generateWordCmd =
     Random.generate WordSelected randomWord
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case model of
+updateGame msg game =
+    case game of
         Start ->
             case msg of
                 KeyPressed (Control "Enter") ->
-                    ( model, generateWordCmd )
+                    ( game, generateWordCmd )
 
                 Begin ->
-                    ( model, generateWordCmd )
+                    ( game, generateWordCmd )
 
                 WordSelected word ->
                     initialPlayingModel word
 
                 _ ->
-                    model |> withCmd
+                    game |> withCmd
 
         Playing word incorrect correct hangmanState ->
             case msg of
@@ -182,21 +191,52 @@ update msg model =
                             Playing word (Set.insert c incorrect) correct (nextHangmanState s) |> withCmd
 
                 _ ->
-                    model |> withCmd
+                    game |> withCmd
 
         End result ->
             case msg of
                 KeyPressed (Control "Enter") ->
-                    ( model, generateWordCmd )
+                    ( game, generateWordCmd )
 
                 Restart ->
-                    ( model, generateWordCmd )
+                    ( game, generateWordCmd )
 
                 WordSelected word ->
                     initialPlayingModel word
 
                 _ ->
-                    model |> withCmd
+                    game |> withCmd
+
+
+updateLang msg lang =
+    case lang of
+        PL ->
+            case msg of
+                LangChanged ENG ->
+                    ENG
+
+                _ ->
+                    lang
+
+        ENG ->
+            case msg of
+                LangChanged PL ->
+                    PL
+
+                _ ->
+                    lang
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg (Model lang game) =
+    let
+        nextLang =
+            updateLang msg lang
+
+        ( nextGame, cmds ) =
+            updateGame msg game
+    in
+    ( Model nextLang nextGame, cmds )
 
 
 type HangmanState
@@ -348,24 +388,89 @@ letterOrHidden b c =
 -- VIEW
 
 
+type TranslationKey
+    = Intro
+    | ImReadyForAGame
+    | GameWon
+    | GameLost
+    | SamePhraseAgain
+    | AnotherPhrase
+    | AsciiSource
+
+
+type alias TranslationSnippet =
+    { pl : String, eng : String }
+
+
+chooseTranslation : Lang -> String -> String -> String
+chooseTranslation l pl eng =
+    case l of
+        PL ->
+            pl
+
+        ENG ->
+            eng
+
+
+getTranslation : Lang -> TranslationKey -> String
+getTranslation lang tk =
+    case tk of
+        Intro ->
+            chooseTranslation lang "Co ty na partyjkę w wisielca?" "Up for a game of hangman?"
+
+        ImReadyForAGame ->
+            chooseTranslation lang "Tak!" "Yes!"
+
+        GameWon ->
+            chooseTranslation lang "Wygrałeś/-aś! Hasło to \"" "You won! The password is \""
+
+        GameLost ->
+            chooseTranslation lang "Przegrałeś/-aś!" "You lost!"
+
+        SamePhraseAgain ->
+            chooseTranslation lang "Dawaj jeszcze raz!" "Lemme try again!"
+
+        AnotherPhrase ->
+            chooseTranslation lang "Inne hasło? ( ͡° ͜ʖ ͡°)" "Different phrase? ( ͡° ͜ʖ ͡°)"
+
+        AsciiSource ->
+            chooseTranslation lang "Ascii art z " "Ascii art from "
+
+
 view : Model -> Html Msg
-view model =
+view (Model lang game) =
     viewContainer
-        [ viewGame model
+        [ viewGame lang game
         ]
 
 
-viewGame model =
-    case model of
+viewLanguage t lang =
+    case lang of
+        PL ->
+            button [ onClick (LangChanged ENG) ] [ text "Switch to English" ]
+
+        ENG ->
+            button [ onClick (LangChanged PL) ] [ text "Zmień na polski" ]
+
+
+viewGame lang game =
+    let
+        t =
+            getTranslation lang
+    in
+    case game of
         Start ->
             div []
-                [ text "Co ty na partyjkę w wisielca?"
+                [ text (t Intro)
                 , br [] []
-                , button [ onClick Begin, style "margin-top" "1em" ] [ text "Yes!" ]
+                , button [ onClick Begin, style "margin-top" "1em" ] [ text (t ImReadyForAGame) ]
+                , div [ style "margin-top" "1em" ]
+                    [ viewLanguage t lang
+                    ]
                 , footer [ style "font-size" "12px", style "padding-top" "1em" ]
                     [ text "Wiktor Czajkowski 2019"
                     , br [] []
-                    , text "Ascii z "
+                    , text (t AsciiSource)
                     , a [ href "https://ascii.co.uk/art/hangman" ] [ text "ascii.co.uk" ]
                     ]
                 ]
@@ -377,25 +482,25 @@ viewGame model =
                 ]
 
         End result ->
-            viewEnd result
+            viewEnd t result
 
 
 viewContainer children =
     div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
 
 
-viewResult message =
+viewResult t message =
     div []
         [ text message
         , br [] []
-        , button [ onClick Restart, style "margin-top" "1em" ] [ text "Kolejne hasło? ( ͡° ͜ʖ ͡°)" ]
+        , button [ onClick Restart, style "margin-top" "1em" ] [ text (t AnotherPhrase) ]
         ]
 
 
-viewEnd result =
+viewEnd t result =
     case result of
         Won word ->
-            viewResult ("Zgadłeś/-aś! Hasło to \"" ++ word ++ "\"!")
+            viewResult t (t GameWon ++ word ++ "\"!")
 
         Lost ->
-            viewResult "Przegrałeś/-aś!"
+            viewResult t (t GameLost)
