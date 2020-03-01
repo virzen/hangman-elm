@@ -10,14 +10,12 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-        # with:
-        #   submodules: true
 
       - name: Setup Elm
         uses: justgook/setup-elm@v1
 
       - name: Build
-        run: elm make src/Main.elm --output ./out/index.html
+        run: make
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
