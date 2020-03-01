@@ -3,9 +3,9 @@ module Main exposing (..)
 import Array exposing (Array)
 import Browser
 import Browser.Events exposing (onKeyPress)
-import Html exposing (Html, a, br, button, div, footer, p, pre, text)
-import Html.Attributes exposing (href, style)
-import Html.Events exposing (onClick)
+import Html exposing (Html, a, br, button, div, footer, input, label, p, pre, text)
+import Html.Attributes exposing (href, style, type_, value)
+import Html.Events exposing (on, onClick)
 import Json.Decode as Decode exposing (Decoder, field)
 import Random
 import Set exposing (Set)
@@ -112,18 +112,27 @@ type Lang
     | ENG
 
 
+type alias IsTouchDevice =
+    Bool
+
+
 type Model
-    = Model Lang Game
+    = Model Lang Game IsTouchDevice
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model PL Start, Cmd.none )
+    ( Model PL Start False, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    onKeyPress keyDecoder
+subscriptions (Model _ _ isTouchDevice) =
+    case isTouchDevice of
+        False ->
+            onKeyPress keyDecoder
+
+        True ->
+            Sub.none
 
 
 
@@ -137,6 +146,7 @@ type Msg
     | TryAgain
     | WordSelected Word
     | LangChanged Lang
+    | StartButtonTouched
 
 
 withCmd model =
@@ -151,13 +161,10 @@ generateWordCmd lang =
     Random.generate WordSelected (randomWord lang)
 
 
-updateGame msg (Model lang game) =
+updateGame msg (Model lang game _) =
     case game of
         Start ->
             case msg of
-                KeyPressed (Control "Enter") ->
-                    ( game, generateWordCmd lang )
-
                 Begin ->
                     ( game, generateWordCmd lang )
 
@@ -204,9 +211,6 @@ updateGame msg (Model lang game) =
                 AnotherPhrase ->
                     ( game, generateWordCmd lang )
 
-                KeyPressed (Control "Enter") ->
-                    ( game, generateWordCmd lang )
-
                 WordSelected word ->
                     initialPlayingModel word
 
@@ -224,7 +228,7 @@ updateGame msg (Model lang game) =
                             game |> withCmd
 
 
-updateLang msg (Model lang _) =
+updateLang msg (Model lang _ _) =
     case lang of
         PL ->
             case msg of
@@ -243,16 +247,28 @@ updateLang msg (Model lang _) =
                     lang
 
 
+updateIsTouchDevice msg (Model _ _ isTouchDevice) =
+    case msg of
+        StartButtonTouched ->
+            True
+
+        _ ->
+            isTouchDevice
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        nextLang =
+        updatedLang =
             updateLang msg model
 
-        ( nextGame, cmds ) =
+        ( updatedGame, cmds ) =
             updateGame msg model
+
+        updatedIsTouchDevice =
+            updateIsTouchDevice msg model
     in
-    ( Model nextLang nextGame, cmds )
+    ( Model updatedLang updatedGame updatedIsTouchDevice, cmds )
 
 
 type HangmanState
@@ -412,6 +428,7 @@ type TranslationKey
     | GiveMeSamePhraseAgain
     | GiveMeAnotherPhrase
     | AsciiSource
+    | TypeHereToPlay
 
 
 type alias TranslationSnippet =
@@ -452,11 +469,14 @@ getTranslation lang tk =
         AsciiSource ->
             chooseTranslation lang "Ascii art z " "Ascii art from "
 
+        TypeHereToPlay ->
+            chooseTranslation lang "Pisz tutaj" "Type here"
+
 
 view : Model -> Html Msg
-view (Model lang game) =
+view model =
     viewContainer
-        [ viewGame lang game
+        [ viewGame model
         ]
 
 
@@ -469,7 +489,23 @@ viewLanguage t lang =
             button [ onClick (LangChanged PL) ] [ text "Zmień na polski" ]
 
 
-viewGame lang game =
+viewInputForMobile t isTouchDevice =
+    case isTouchDevice of
+        True ->
+            div []
+                [ label []
+                    [ text (t TypeHereToPlay)
+                    , input
+                        [ type_ "text", value "", on "keydown" keyDecoder ]
+                        []
+                    ]
+                ]
+
+        False ->
+            text ""
+
+
+viewGame (Model lang game isTouchDevice) =
     let
         t =
             getTranslation lang
@@ -479,7 +515,7 @@ viewGame lang game =
             div []
                 [ text (t Intro)
                 , br [] []
-                , button [ onClick Begin, style "margin-top" "1em" ] [ text (t ImReadyForAGame) ]
+                , button [ onClick Begin, on "touchstart" (Decode.succeed StartButtonTouched), style "margin-top" "1em" ] [ text (t ImReadyForAGame) ]
                 , div [ style "margin-top" "1em" ]
                     [ viewLanguage t lang
                     ]
@@ -495,6 +531,7 @@ viewGame lang game =
             div []
                 [ pre [ style "font-size" "18px" ] [ text (hangmanAscii hangmanState) ]
                 , pre [ style "font-size" "18px" ] [ text (hiddenWordForm word correct) ]
+                , viewInputForMobile t isTouchDevice
                 ]
 
         End result ->
