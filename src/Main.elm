@@ -31,9 +31,14 @@ noSpaces s =
     String.replace " " "" s
 
 
-randomWord : Random.Generator Word
-randomWord =
-    Random.uniform "komu w drogę temu cukier do szafy" [ "baba z wozu nie ma co jeść", "kto pod kim dołki kopie ten nosił wilka", "gość w dom razy kilka ", "w matematyce nie ma dróg królewskich" ]
+randomWord : Lang -> Random.Generator Word
+randomWord lang =
+    case lang of
+        PL ->
+            Random.uniform "komu w drogę temu cukier do szafy" [ "baba z wozu nie ma co jeść", "kto pod kim dołki kopie ten nosił wilka", "gość w dom razy kilka ", "w matematyce nie ma dróg królewskich" ]
+
+        ENG ->
+            Random.uniform "tis but a scratch" [ "its just a flesh wound", "ministry of silly walks", "no royal road to mathematics" ]
 
 
 type Key
@@ -141,19 +146,19 @@ initialPlayingModel word =
     Playing word Set.empty Set.empty (Transitionable Nothing) |> withCmd
 
 
-generateWordCmd =
-    Random.generate WordSelected randomWord
+generateWordCmd lang =
+    Random.generate WordSelected (randomWord lang)
 
 
-updateGame msg game =
+updateGame msg (Model lang game) =
     case game of
         Start ->
             case msg of
                 KeyPressed (Control "Enter") ->
-                    ( game, generateWordCmd )
+                    ( game, generateWordCmd lang )
 
                 Begin ->
-                    ( game, generateWordCmd )
+                    ( game, generateWordCmd lang )
 
                 WordSelected word ->
                     initialPlayingModel word
@@ -196,10 +201,10 @@ updateGame msg game =
         End result ->
             case msg of
                 KeyPressed (Control "Enter") ->
-                    ( game, generateWordCmd )
+                    ( game, generateWordCmd lang )
 
                 Restart ->
-                    ( game, generateWordCmd )
+                    ( game, generateWordCmd lang )
 
                 WordSelected word ->
                     initialPlayingModel word
@@ -208,7 +213,7 @@ updateGame msg game =
                     game |> withCmd
 
 
-updateLang msg lang =
+updateLang msg (Model lang _) =
     case lang of
         PL ->
             case msg of
@@ -228,13 +233,13 @@ updateLang msg lang =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg (Model lang game) =
+update msg model =
     let
         nextLang =
-            updateLang msg lang
+            updateLang msg model
 
         ( nextGame, cmds ) =
-            updateGame msg game
+            updateGame msg model
     in
     ( Model nextLang nextGame, cmds )
 
