@@ -5,7 +5,7 @@ OUT_DIR=out
 build: elm static
 
 watch:
-	elm-live $(ELM_FILES) --dir=$(OUT_DIR)
+	elm-live $(ELM_FILES) --hot --dir=$(OUT_DIR) -- --output=$(OUT_DIR)/main.js
 
 setup:
 	elm install
