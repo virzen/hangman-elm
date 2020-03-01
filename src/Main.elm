@@ -98,7 +98,7 @@ type alias IncorrectLetters =
 
 type Result
     = Won Word
-    | Lost
+    | Lost Word
 
 
 type Game
@@ -133,7 +133,8 @@ subscriptions model =
 type Msg
     = KeyPressed Key
     | Begin
-    | Restart
+    | AnotherPhrase
+    | TryAgain
     | WordSelected Word
     | LangChanged Lang
 
@@ -190,7 +191,7 @@ updateGame msg (Model lang game) =
                             Playing word incorrect (Set.insert c correct) hangmanState |> withCmd
 
                         ( False, Final _, _ ) ->
-                            End Lost |> withCmd
+                            End (Lost word) |> withCmd
 
                         ( False, Transitionable s, _ ) ->
                             Playing word (Set.insert c incorrect) correct (nextHangmanState s) |> withCmd
@@ -200,17 +201,27 @@ updateGame msg (Model lang game) =
 
         End result ->
             case msg of
-                KeyPressed (Control "Enter") ->
+                AnotherPhrase ->
                     ( game, generateWordCmd lang )
 
-                Restart ->
+                KeyPressed (Control "Enter") ->
                     ( game, generateWordCmd lang )
 
                 WordSelected word ->
                     initialPlayingModel word
 
                 _ ->
-                    game |> withCmd
+                    case result of
+                        Lost word ->
+                            case msg of
+                                TryAgain ->
+                                    initialPlayingModel word
+
+                                _ ->
+                                    game |> withCmd
+
+                        _ ->
+                            game |> withCmd
 
 
 updateLang msg (Model lang _) =
@@ -398,8 +409,8 @@ type TranslationKey
     | ImReadyForAGame
     | GameWon
     | GameLost
-    | SamePhraseAgain
-    | AnotherPhrase
+    | GiveMeSamePhraseAgain
+    | GiveMeAnotherPhrase
     | AsciiSource
 
 
@@ -432,10 +443,10 @@ getTranslation lang tk =
         GameLost ->
             chooseTranslation lang "Przegrałeś/-aś!" "You lost!"
 
-        SamePhraseAgain ->
+        GiveMeSamePhraseAgain ->
             chooseTranslation lang "Dawaj jeszcze raz!" "Lemme try again!"
 
-        AnotherPhrase ->
+        GiveMeAnotherPhrase ->
             chooseTranslation lang "Inne hasło? ( ͡° ͜ʖ ͡°)" "Different phrase? ( ͡° ͜ʖ ͡°)"
 
         AsciiSource ->
@@ -494,18 +505,21 @@ viewContainer children =
     div [ style "height" "100vh", style "display" "flex", style "justify-content" "center", style "align-items" "center", style "text-align" "center" ] children
 
 
-viewResult t message =
-    div []
-        [ text message
-        , br [] []
-        , button [ onClick Restart, style "margin-top" "1em" ] [ text (t AnotherPhrase) ]
-        ]
-
-
 viewEnd t result =
     case result of
         Won word ->
-            viewResult t (t GameWon ++ word ++ "\"!")
+            div
+                []
+                [ text (t GameWon ++ word ++ "\"!")
+                , br [] []
+                , button [ onClick AnotherPhrase, style "margin-top" "1em" ] [ text (t GiveMeAnotherPhrase) ]
+                ]
 
-        Lost ->
-            viewResult t (t GameLost)
+        Lost word ->
+            div
+                []
+                [ text (t GameLost)
+                , br [] []
+                , button [ onClick AnotherPhrase, style "margin-top" "1em" ] [ text (t GiveMeAnotherPhrase) ]
+                , button [ onClick TryAgain, style "margin-top" "1em" ] [ text (t GiveMeSamePhraseAgain) ]
+                ]
